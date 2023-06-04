@@ -248,7 +248,7 @@ namespace ECommerce.IdentityAPI.BL.Testing
             if (jwtService.IsTokenValid(token))
             {
                 List<Claim> lsClaims = jwtService.GetTokenClaims(token).ToList();
-                Assert.AreEqual(lsClaims.FirstOrDefault(l => l.Type == ClaimTypes.Name).Value, "2");
+                Assert.That("2", Is.EqualTo(lsClaims.FirstOrDefault(l => l.Type == ClaimTypes.Name).Value));
             }
             else
             {
