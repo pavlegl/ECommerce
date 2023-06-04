@@ -121,7 +121,9 @@ public partial class EcommerceContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.Tchanged).HasColumnName("TChanged");
+            entity.Property(e => e.Tchanged)
+                .HasColumnType("date")
+                .HasColumnName("TChanged");
             entity.Property(e => e.Uchanged).HasColumnName("UChanged");
 
             entity.HasOne(d => d.UchangedNavigation).WithMany(p => p.ProductTypes)
@@ -156,11 +158,10 @@ public partial class EcommerceContext : DbContext
 
             entity.ToTable("User");
 
+            entity.HasIndex(e => e.Username, "UQ_User").IsUnique();
+
             entity.Property(e => e.Address)
                 .HasMaxLength(500)
-                .IsUnicode(false);
-            entity.Property(e => e.City)
-                .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.CountryAlpha3Code)
                 .HasMaxLength(3)
@@ -176,6 +177,9 @@ public partial class EcommerceContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.Password)
                 .HasMaxLength(64)
+                .IsUnicode(false);
+            entity.Property(e => e.Postcode)
+                .HasMaxLength(10)
                 .IsUnicode(false);
             entity.Property(e => e.Tchanged)
                 .HasColumnType("date")

@@ -25,7 +25,7 @@ public partial class User
 
     public string Address { get; set; } = null!;
 
-    public string City { get; set; } = null!;
+    public string? Postcode { get; set; }
 
     public string CountryAlpha3Code { get; set; } = null!;
 

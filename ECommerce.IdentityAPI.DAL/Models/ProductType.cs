@@ -13,7 +13,7 @@ public partial class ProductType
 
     public int Uchanged { get; set; }
 
-    public int Tchanged { get; set; }
+    public DateTime Tchanged { get; set; }
 
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();
 
