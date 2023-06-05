@@ -1,23 +1,16 @@
 ﻿using ECommerce.Models;
 using ECommerce.IdentityAPI.DAL.Models;
 using Microsoft.EntityFrameworkCore;
-
+using ECommerce.IdentityAPI.Common;
 
 namespace ECommerce.IdentityAPI.DAL
 {
     public class UserDAL : IUserDAL
     {
         //private EcommerceContext _dbc;
-        public ECConfig _ecConfig;
 
         public UserDAL()
         {
-            //_dbc = new EcommerceContext();
-            _ecConfig = new ECConfig
-            {
-                ExceptionHandler = new ECExceptionHttpResponseHandler(new ECLogger()),
-                Logger = new ECLogger()
-            };
         }
 
         /// <summary>
@@ -25,18 +18,18 @@ namespace ECommerce.IdentityAPI.DAL
         /// </summary>
         /// <returns>UserDalDto object.</returns>
         /// <exception cref="Exception"></exception>
-        public List<DtoUserDal> GetUsers()
+        public List<DtoUser> GetUsers()
         {
             try
             {
                 using (EcommerceContext dbc = new EcommerceContext())
                 {
-                    return Common.Map<Models.User, DtoUserDal, List<Models.User>, List<DtoUserDal>>(dbc.Users.ToList());
+                    return ECommerce.Common.Map<Models.User, DtoUser, List<Models.User>, List<DtoUser>>(dbc.Users.ToList());
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in GetUsers(): " + Common.getWholeException(ex));
+                throw new Exception("Error in GetUsers(): " + ECommerce.Common.getWholeException(ex));
             }
         }
 
@@ -46,16 +39,16 @@ namespace ECommerce.IdentityAPI.DAL
         /// <param name="id">Id of the User.</param>
         /// <returns>UserDalDto object.</returns>
         /// <exception cref="Exception"></exception>
-        public DtoUserDal GetUserById(int id)
+        public DtoUser GetUserById(int id)
         {
             try
             {
                 Models.User user = findUserThrowExcIfNotFound(id);
-                return Common.Map<Models.User, DtoUserDal, Models.User, DtoUserDal>(user);
+                return ECommerce.Common.Map<Models.User, DtoUser, Models.User, DtoUser>(user);
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in GetUserById(" + id + "): " + Common.getWholeException(ex));
+                throw new Exception("Error in GetUserById(" + id + "): " + ECommerce.Common.getWholeException(ex));
             }
         }
 
@@ -65,21 +58,21 @@ namespace ECommerce.IdentityAPI.DAL
         /// <param name="user"></param>
         /// <returns>UserDalDto object</returns>
         /// <exception cref="Exception"></exception>
-        public DtoUserDal AddUser(DtoUserDal userDAL)
+        public DtoUser AddUser(DtoUser userDAL)
         {
             try
             {
                 using (EcommerceContext dbc = new EcommerceContext())
                 {
-                    Models.User user = Common.Map<DtoUserDal, Models.User, DtoUserDal, Models.User>(userDAL);
+                    Models.User user = ECommerce.Common.Map<DtoUser, Models.User, DtoUser, Models.User>(userDAL);
                     dbc.Users.Add(user);
                     dbc.SaveChanges();
-                    return Common.Map<Models.User, DtoUserDal, Models.User, DtoUserDal>(user);
+                    return ECommerce.Common.Map<Models.User, DtoUser, Models.User, DtoUser>(user);
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in AddUser(" + Common.jsonSerializeIgnoreNulls(userDAL) + "): " + Common.getWholeException(ex));
+                throw new Exception("Error in AddUser(" + ECommerce.Common.jsonSerializeIgnoreNulls(userDAL) + "): " + ECommerce.Common.getWholeException(ex));
             }
         }
 
@@ -88,7 +81,7 @@ namespace ECommerce.IdentityAPI.DAL
         /// </summary>
         /// <param name="userDAL"></param>
         /// <exception cref="Exception"></exception>
-        public void ModifyUser(DtoUserDal userDAL)
+        public void ModifyUser(DtoUser userDAL)
         {
             try
             {
@@ -97,7 +90,7 @@ namespace ECommerce.IdentityAPI.DAL
                 using (EcommerceContext dbc = new EcommerceContext())
                 {
                     Models.User userOrig = findUserThrowExcIfNotFound(userDAL.IdUser);
-                    Models.User user = Common.Map<DtoUserDal, Models.User, DtoUserDal, Models.User>(userDAL);
+                    Models.User user = ECommerce.Common.Map<DtoUser, Models.User, DtoUser, Models.User>(userDAL);
                     //var entry = _dbc.Entry(userOrig);
                     dbc.Entry(userOrig).State = EntityState.Modified;
                     dbc.SaveChanges();
@@ -105,7 +98,7 @@ namespace ECommerce.IdentityAPI.DAL
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in ModifyUser(" + Common.jsonSerializeIgnoreNulls(userDAL) + "): " + Common.getWholeException(ex));
+                throw new Exception("Error in ModifyUser(" + ECommerce.Common.jsonSerializeIgnoreNulls(userDAL) + "): " + ECommerce.Common.getWholeException(ex));
             }
         }
 
@@ -129,7 +122,7 @@ namespace ECommerce.IdentityAPI.DAL
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in findUserReturn404(" + idUser + "): " + Common.getWholeException(ex));
+                throw new Exception("Error in findUserReturn404(" + idUser + "): " + ECommerce.Common.getWholeException(ex));
             }
 
             if (user == null)
@@ -137,7 +130,15 @@ namespace ECommerce.IdentityAPI.DAL
             return user;
         }
 
-        public bool CheckUserCredentials(string userName, string passwordHash)
+        /// <summary>
+        /// Checks the user credentials and returns true if they are correct.
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <param name="passwordHash"></param>
+        /// <param name="idUser">Value of idUser if the credentials are correct.</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public bool CheckUserCredentialsGetIdUser(string userName, string passwordHash, ref int idUser)
         {
             try
             {
@@ -145,16 +146,20 @@ namespace ECommerce.IdentityAPI.DAL
                     throw new Exception("Username or passwordHash is empty.");
                 using (EcommerceContext dbc = new EcommerceContext())
                 {
-                    return dbc.Users.Any(l => l.Username.ToLower() == userName.ToLower() && l.Password == passwordHash);
+                    User user = dbc.Users.FirstOrDefault(l => l.Username.ToLower() == userName.ToLower() && l.Password == passwordHash);
+                    if (user == null)
+                        return false;
+                    idUser = user.IdUser;
+                    return true;
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in CheckUserCredentials('" + userName + "','" + passwordHash + "'): " + Common.getWholeException(ex));
+                throw new Exception("Error in CheckUserCredentialsGetIdUser('" + userName + "','" + passwordHash + "'): " + ECommerce.Common.getWholeException(ex));
             }
         }
 
-        public List<DtoRoleDal> GetRolesForUser(int idUser)
+        public List<DtoRole> GetRolesForUser(int idUser)
         {
             try
             {
@@ -166,12 +171,12 @@ namespace ECommerce.IdentityAPI.DAL
                             IdRole = role.IdRole,
                             Name = role.Name
                         }).ToList();
-                    return Common.Map<Role, DtoRoleDal, List<Role>, List<DtoRoleDal>>(lsRole);
+                    return ECommerce.Common.Map<Role, DtoRole, List<Role>, List<DtoRole>>(lsRole);
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in GetRolesForUser(" + idUser + "): " + Common.getWholeException(ex));
+                throw new Exception("Error in GetRolesForUser(" + idUser + "): " + ECommerce.Common.getWholeException(ex));
             }
         }
     }

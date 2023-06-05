@@ -2,14 +2,12 @@
 
 namespace ECommerce
 {
-    public abstract class ECAuthService
+    public interface IECAuthService
     {
-        public ECAuthService(IECAuthContainerModel model)
-        {
-        }
-
-        abstract public bool IsTokenValid(string token);
-        abstract public string GenerateToken();
-        abstract public IEnumerable<Claim> GetTokenClaims(string token);
+        IECAuthContainerModel AuthContainerModel { get; set; }
+        
+        bool IsTokenValid(string token);
+        string GenerateToken();
+        IEnumerable<Claim> GetTokenClaims(string token);
     }
 }

@@ -29,12 +29,6 @@ public partial class User
 
     public string CountryAlpha3Code { get; set; } = null!;
 
-    public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
-
-    public virtual ICollection<ProductType> ProductTypes { get; set; } = new List<ProductType>();
-
-    public virtual ICollection<Product> Products { get; set; } = new List<Product>();
-
     public virtual ICollection<Role> Roles { get; set; } = new List<Role>();
 
     public virtual ICollection<UserRole> UserRoleIdUserNavigations { get; set; } = new List<UserRole>();

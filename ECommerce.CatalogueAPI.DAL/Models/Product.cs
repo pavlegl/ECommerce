@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ECommerce.IdentityAPI.DAL.Models;
+namespace ECommerce.CatalogueAPI.DAL.Models;
 
 public partial class Product
 {
@@ -25,9 +25,11 @@ public partial class Product
 
     public DateTime Tchanged { get; set; }
 
-    public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
+    public int? IdBrand { get; set; }
+
+    public virtual Brand? IdBrandNavigation { get; set; }
 
     public virtual ProductType IdProductTypeNavigation { get; set; } = null!;
 
-    public virtual User UchangedNavigation { get; set; } = null!;
+    public virtual ICollection<ProductRegion> ProductRegions { get; set; } = new List<ProductRegion>();
 }

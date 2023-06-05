@@ -1,4 +1,5 @@
-﻿using ECommerce.IdentityAPI.DAL;
+﻿using ECommerce.IdentityAPI.Common;
+using ECommerce.IdentityAPI.DAL;
 using ECommerce.IdentityAPI.DAL.Models;
 using ECommerce.Models;
 using Microsoft.AspNetCore.Http;
@@ -26,7 +27,7 @@ namespace ECommerce.IdentityAPI.BL
 
     internal class Misc
     {
-        internal static void validateUserForPost(DtoUserDal user, IUserDAL userDal)
+        internal static void validateNewUser(DtoUser user, IUserDAL userDal)
         {
             if (user == null)
                 throw new ECException("User object is null.");
@@ -44,7 +45,7 @@ namespace ECommerce.IdentityAPI.BL
                     throw new ECException(EnumExceptionType.EmailBadFormat);
             }
 
-            List<DtoUserDal> lsUsers = (List<DtoUserDal>)userDal.GetUsers();
+            List<DtoUser> lsUsers = (List<DtoUser>)userDal.GetUsers();
             if (lsUsers.FirstOrDefault(l => l.EmailAddress != null && l.EmailAddress.ToLower() == user.EmailAddress.ToLower()) != null)
                 throw new ECException(EnumExceptionType.EmailAlreadyUsed);
 

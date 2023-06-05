@@ -4,11 +4,17 @@ using System.Security.Claims;
 
 namespace ECommerce.IdentityAPI.BL
 {
-    public class JwtService : ECAuthService
+    public class JwtService : IECAuthService
     {
         private IECAuthContainerModel _authContainerModel;
 
-        public JwtService(IECAuthContainerModel model) : base(model)
+        public IECAuthContainerModel AuthContainerModel { get { return _authContainerModel; } set { _authContainerModel = value; } }
+
+        public JwtService()
+        {
+        }
+
+        public JwtService(IECAuthContainerModel model)
         {
             _authContainerModel = model;
         }
@@ -35,7 +41,7 @@ namespace ECommerce.IdentityAPI.BL
         /// <param name="token"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public override bool IsTokenValid(string token)
+        public bool IsTokenValid(string token)
         {
             if (string.IsNullOrEmpty(token))
                 throw new Exception("Token is empty.");
@@ -86,7 +92,7 @@ namespace ECommerce.IdentityAPI.BL
         /// <param name="model"></param>
         /// <returns>Generated token.</returns>
         /// <exception cref="ArgumentException"></exception>
-        public override string GenerateToken()
+        public string GenerateToken()
         {
             if (_authContainerModel?.Claims == null || _authContainerModel.Claims.Length == 0)
                 throw new ArgumentException("Parameter is null or the Claims property is empty.");
@@ -103,7 +109,7 @@ namespace ECommerce.IdentityAPI.BL
             return token;
         }
 
-        public override IEnumerable<Claim> GetTokenClaims(string token)
+        public IEnumerable<Claim> GetTokenClaims(string token)
         {
             if (string.IsNullOrEmpty(token))
                 throw new ArgumentException("Parameter is empty.");
@@ -117,7 +123,7 @@ namespace ECommerce.IdentityAPI.BL
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in GetTokenClaims('" + token + "'): " + Common.getWholeException(ex));
+                throw new Exception("Error in GetTokenClaims('" + token + "'): " + ECommerce.Common.getWholeException(ex));
             }
         }
 

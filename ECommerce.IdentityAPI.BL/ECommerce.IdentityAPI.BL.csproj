@@ -25,9 +25,4 @@
     <ProjectReference Include="..\ECommerce.IdentityAPI.DAL\ECommerce.IdentityAPI.DAL.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Managers\" />
-    <Folder Include="Models\" />
-  </ItemGroup>
-
 </Project>

@@ -1,21 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ECommerce.IdentityAPI.DAL.Models;
+namespace ECommerce.CatalogueAPI.DAL.Models;
 
-public partial class ProductType
+public partial class Brand
 {
-    public int IdProductType { get; set; }
+    public int IdBrand { get; set; }
 
     public string Name { get; set; } = null!;
 
-    public bool IsActive { get; set; }
+    public string? ContactPhone { get; set; }
 
     public int Uchanged { get; set; }
 
     public DateTime Tchanged { get; set; }
 
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();
-
-    public virtual User UchangedNavigation { get; set; } = null!;
 }
