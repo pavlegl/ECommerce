@@ -1,3 +1,4 @@
+#nullable disable
 using ECommerce.IdentityAPI.Common;
 using ECommerce.Models;
 using Microsoft.AspNetCore.Authentication;
@@ -231,20 +232,13 @@ namespace ECommerce.IdentityAPI.BL.Testing
             // ----- Acting -----
             IECAuthService jwtService = new JwtService(authContainerModel);
 
-            string jwt = userBl.CheckUserCredentialsReturnJwt(_userValidMne.Username, _userValidMne.Password, jwtService);
+            string jwt = null;
+            bool isUserAuthorized = userBl.CheckUserCredentialsReturnJwt(_userValidMne.Username, _userValidMne.Password, jwtService, ref jwt);
             bool isValidToken = userBl.IsTokenValid(jwt, new JwtService(authContainerModel));
 
             // ----- Asserting -----
+            Assert.IsTrue(isUserAuthorized);
             Assert.IsTrue(isValidToken);
-            
-            /*{
-                List<Claim> lsClaims = jwtService.GetTokenClaims(jwt).ToList();
-                Assert.That("2", Is.EqualTo(lsClaims.FirstOrDefault(l => l.Type == ClaimTypes.Name).Value));
-            }
-            else
-            {
-                throw new UnauthorizedAccessException();
-            }*/
         }
 
     }

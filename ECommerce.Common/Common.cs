@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿#nullable disable
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
 using System.Security.Cryptography;
@@ -60,9 +61,26 @@ namespace ECommerce
 
     }
 
-    public class ECConfig
+    public interface IECConfig
     {
-        public BaseECExceptionHandler ExceptionHandler;
-        public IECLogger Logger;
+        BaseECExceptionHandler ExceptionHandler { get; }
+        IECLogger Logger { get; }
     }
+
+    public class ECConfig : IECConfig
+    {
+        BaseECExceptionHandler _exceptionHandler;
+        IECLogger _logger;
+
+        public BaseECExceptionHandler ExceptionHandler { get { return _exceptionHandler; } }
+        public IECLogger Logger { get { return _logger; } }
+
+        public ECConfig(BaseECExceptionHandler exceptionHandler, IECLogger logger)
+        {
+            _exceptionHandler = exceptionHandler;
+            _logger = logger;
+        }
+
+    }
+
 }

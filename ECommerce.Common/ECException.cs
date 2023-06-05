@@ -36,6 +36,8 @@ namespace ECommerce
         public ECExceptionHttpResponseHandler(IECLogger logger) : base(logger)
         {
             _logger = logger;
+            if (_logger == null)
+                _logger = new ECLogger();
         }
 
         /// <summary>

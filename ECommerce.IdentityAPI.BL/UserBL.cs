@@ -1,4 +1,5 @@
 ﻿using ECommerce.IdentityAPI.Common;
+using ECommerce.IdentityAPI.DAL;
 using ECommerce.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -16,6 +17,8 @@ namespace ECommerce.IdentityAPI.BL
         public UserBL(IUserDAL userDal)
         {
             _userDal = userDal;
+            if (_userDal == null)
+                _userDal = new UserDAL();
         }
 
         /*public List<UserDAL> GetUsers()
@@ -108,10 +111,11 @@ namespace ECommerce.IdentityAPI.BL
         /// </summary>
         /// <param name="userName"></param>
         /// <param name="password"></param>
-        /// <param name="authService">Instance of the IECAuthService prefilled with SecretKey and SecurityAlgorithm.</param>
+        /// <param name="authService">IECAuthService for creating a JWT token.</param>
+        /// <param name="jwt">JWT token</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public string CheckUserCredentialsReturnJwt(string userName, string password, IECAuthService authService)
+        public bool CheckUserCredentialsReturnJwt(string userName, string password, IECAuthService authService, ref string jwt)
         {
             try
             {
@@ -138,11 +142,12 @@ namespace ECommerce.IdentityAPI.BL
                     };
 
                 authService.AuthContainerModel.Claims = arClaims;
-                return authService.GenerateToken();
+                jwt = authService.GenerateToken();
+                return true;
             }
             catch (UnauthorizedAccessException uaexc)
             {
-                throw uaexc;
+                return false;
             }
             catch (Exception ex)
             {

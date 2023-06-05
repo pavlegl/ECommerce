@@ -14,11 +14,11 @@ namespace TestCatalogueAPI
         [Test]
         public void TestGetAvailableProducts()
         {
-            ProductBL productBl = new ProductBL(new ProductDAL());
+            ProductBL productBl = new ProductBL(new ProductDAL(), "GBR");
 
-            List<DtoProduct> lsDtoProducts = productBl.GetAvailableProducts(null);
+            List<DtoProduct> lsDtoProducts = productBl.GetAvailableProducts();
 
-            Assert.That(lsDtoProducts.Count, Is.EqualTo(28));
+            Assert.That(lsDtoProducts.Count, Is.EqualTo(7));
         }
     }
 }
