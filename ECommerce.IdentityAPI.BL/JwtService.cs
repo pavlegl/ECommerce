@@ -21,7 +21,7 @@ namespace ECommerce.IdentityAPI.BL
 
         private SecurityKey GetSymmetricSecurityKey()
         {
-            byte[] symmetricKey = Convert.FromBase64String(_authContainerModel.SecretKey);
+            byte[] symmetricKey = Convert.FromBase64String(_authContainerModel.SecretKeyBase64);
             return new SymmetricSecurityKey(symmetricKey);
         }
 
@@ -123,7 +123,7 @@ namespace ECommerce.IdentityAPI.BL
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in GetTokenClaims('" + token + "'): " + ECommerce.Common.getWholeException(ex));
+                throw new Exception("Error in GetTokenClaims('" + token + "'): " + ECommerce.EcCommon.getWholeException(ex));
             }
         }
 

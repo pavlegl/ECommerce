@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ECommerce.CatalogueAPI.Common\ECommerce.CatalogueAPI.Common.csproj" />
-    <ProjectReference Include="..\ECommerce.Common\ECommerce.csproj" />
+    <ProjectReference Include="..\ECommerce\ECommerce.csproj" />
   </ItemGroup>
 
 </Project>

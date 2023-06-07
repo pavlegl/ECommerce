@@ -1,8 +1,10 @@
 #nullable disable
 using ECommerce.CatalogueAPI.BL;
 using ECommerce.CatalogueAPI.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
+using Newtonsoft.Json;
 
 namespace ECommerce.CatalogueAPI.WebAPI.Controllers
 {
@@ -10,60 +12,84 @@ namespace ECommerce.CatalogueAPI.WebAPI.Controllers
     [ApiController]
     public class CatalogueController : ControllerBase
     {
-        IECConfig _ecConfig = null;
+        IConfiguration _config;
+        IECLogger _logger = null;
         IProductBL _productBl = null;
+        BaseECExceptionHandler _excHandler = null;
 
-        public CatalogueController(IECConfig ecConfig, IProductBL productBl)
+        public CatalogueController(IConfiguration config, IProductBL productBl, BaseECExceptionHandler excHandler, IECLogger logger)
         {
-            _ecConfig = ecConfig;
-            if (_ecConfig == null)
-                _ecConfig = new ECConfig(new ECExceptionHttpResponseHandler(null), new ECLogger());
-
+            _config = config;
             _productBl = productBl;
-
-            /*_ecConfig = new ECConfig
-            {
-                ExceptionHandler = new ECExceptionHandler(new ECLogger()),
-                Logger = new ECLogger()
-            };*/
+            _logger = logger;
+            _excHandler = excHandler;
         }
 
         /// <summary>
         /// Authenticates the user and returns JWT.
         /// </summary>
         /// <returns></returns>
-        public ActionResult AuthenticateUser(string username, string password)
+        [HttpPost]
+        protected ActionResult AuthenticateUser([FromForm] string username, [FromForm] string password)
         {
-            throw new NotImplementedException();
-            /*try
+            try
             {
-                return Ok(jwt);
+                return Ok();
             }
             catch (Exception ex)
             {
-                return _ecConfig.ExceptionHandler.ReturnHttpResponse(ex, Request);
-            }*/
+                return _excHandler.ReturnHttpResponse(ex, Request);
+            }
         }
 
         /// <summary>
         /// Returns available active products for the region.
         /// </summary>
         /// <returns></returns>
-        [HttpGet()]
+        [HttpGet]
         public ActionResult<List<DtoProduct>> GetAvailableProducts()
         {
             try
             {
-                /*Request.Headers.TryGetValue("Authorization", out StringValues authorizationHeader);
-                if (String.IsNullOrEmpty(authorizationHeader.ToString()))
-                    throw new ECExceptionHttpResponse(new ObjectResult(null) { StatusCode = StatusCodes.Status401Unauthorized });*/
-                _productBl.GetAvailableProducts();
-                return null;
+                List<DtoProduct> ls = _productBl.GetAvailableProducts();
+                foreach (var item in ls)
+                {
+                    _logger.w2l(item.ProductName, EnumTypeOfLog.Information, null, Request);
+                }
+                return ls;
             }
             catch (Exception ex)
             {
-                return _ecConfig.ExceptionHandler.ReturnHttpResponse(ex, Request);
+                return _excHandler.ReturnHttpResponse(ex, Request);
             }
         }
+
+        private void checkAuthorizationRaiseExc()
+        {
+            Request.Headers.TryGetValue("Authorization", out StringValues authorizationHeader);
+            if (authorizationHeader.Count == 0) // String.IsNullOrEmpty(authorizationHeader.ToString()))
+                throw new ECException(StatusCodes.Status400BadRequest, "Authorization header is empty.");
+            if (!authorizationHeader[0].ToLower().StartsWith("bearer"))
+                throw new ECException(StatusCodes.Status400BadRequest, "Not a Bearer authentication.");
+            string[] arAuth = authorizationHeader[0].Split(' ');
+            string jwt = arAuth[1];
+
+
+        }
+
+        private async Task callECommerceIdentityApi()
+        {
+            using (var httpClient = new HttpClient())
+            {
+                string sUrlIdentityApi = _config["UrlECommerceIdentityApi"];
+                SvcIdentityApi svc = new SvcIdentityApi(sUrlIdentityApi, httpClient);
+                //......
+                //......
+                //......
+            }
+        }
+
+
+
     }
 }

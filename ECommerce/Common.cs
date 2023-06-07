@@ -8,8 +8,23 @@ using AutoMapper;
 
 namespace ECommerce
 {
-    public class Common
+    public class CustomClaims
     {
+        public const string Roles = "Roles";
+        public const string IsAdmin = "IsAdmin";
+        public const string IsCustomer = "IsCustomer";
+    }
+
+    public class CustomAuthPolicies
+    {
+        public const string IsAdmin = "IsAdmin";
+        public const string IsCustomer = "IsCustomer";
+    }
+
+    public class EcCommon
+    {
+        public const int IdRole_Admin = 2;
+        public const int IdRole_Customer = 3;
 
         public static string getCurrentDir()
         {
@@ -52,6 +67,18 @@ namespace ECommerce
             return iMapper.Map<TSource, TDestination>(source);
         }
 
+        public static TDestination Map<TSource, TDestination>(TSource source)
+        {
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.CreateMap<TSource, TDestination>();
+
+            });
+            IMapper iMapper = config.CreateMapper();
+            return iMapper.Map<TSource, TDestination>(source);
+        }
+
+
         public static string jsonSerializeIgnoreNulls(object obj)
         {
             if (obj == null)
@@ -61,7 +88,7 @@ namespace ECommerce
 
     }
 
-    public interface IECConfig
+    /*public interface IECConfig
     {
         BaseECExceptionHandler ExceptionHandler { get; }
         IECLogger Logger { get; }
@@ -81,6 +108,6 @@ namespace ECommerce
             _logger = logger;
         }
 
-    }
+    }*/
 
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿#nullable disable
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
 
@@ -22,7 +23,7 @@ namespace ECommerce
                     }
                     catch (Exception ex1)
                     {
-                        ipAddr = "<unavailable IP address, error: " + Common.getWholeException(ex1) + ">";
+                        ipAddr = "<unavailable IP address, error: " + EcCommon.getWholeException(ex1) + ">";
                     }
                     string msgFinal = "";
                     if (logType == EnumTypeOfLog.Error)
@@ -30,9 +31,9 @@ namespace ECommerce
                     msgFinal += "[" + ipAddr + "] " + message;
 
                     if (excOrig != null)
-                        msgFinal += " Exception: " + Common.getWholeException(excOrig);
+                        msgFinal += " Exception: " + EcCommon.getWholeException(excOrig);
 
-                    using (StreamWriter sw = new StreamWriter(Common.getCurrentDir() + "\\ECommerce_Log.txt", true, Encoding.UTF8))
+                    using (StreamWriter sw = new StreamWriter(EcCommon.getCurrentDir() + "\\ECommerce_Log.txt", true, Encoding.UTF8))
                     {
                         sw.WriteLine(DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss") + " | " + msgFinal);
                     }

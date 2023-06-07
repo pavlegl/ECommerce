@@ -58,7 +58,7 @@ namespace ECommerce.CatalogueAPI.DAL
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in GetAvailableProducts('" + regionAlpha3Code + "'): " + ECommerce.Common.getWholeException(ex));
+                throw new Exception("Error in GetAvailableProducts('" + regionAlpha3Code + "'): " + ECommerce.EcCommon.getWholeException(ex));
             }
         }
 
@@ -87,7 +87,7 @@ namespace ECommerce.CatalogueAPI.DAL
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in GetAvailableProductsByProductType('" + regionAlpha3Code + "'," + idProductType + "): " + ECommerce.Common.getWholeException(ex));
+                throw new Exception("Error in GetAvailableProductsByProductType('" + regionAlpha3Code + "'," + idProductType + "): " + ECommerce.EcCommon.getWholeException(ex));
             }
         }
 
@@ -116,7 +116,7 @@ namespace ECommerce.CatalogueAPI.DAL
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in GetAvailableProductsByIdProduct('" + regionAlpha3Code + "'," + idProduct + "): " + ECommerce.Common.getWholeException(ex));
+                throw new Exception("Error in GetAvailableProductsByIdProduct('" + regionAlpha3Code + "'," + idProduct + "): " + ECommerce.EcCommon.getWholeException(ex));
             }
         }
     }

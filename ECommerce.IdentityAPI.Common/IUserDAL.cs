@@ -4,9 +4,9 @@
     {
         List<DtoUser> GetUsers();
         DtoUser GetUserById(int id);
-        DtoUser AddUser(DtoUser userDto);
+        DtoUser GetUserByUsername(string userName);
+        DtoUser AddUser(DtoUser userDto, List<int> lsIdRoles, int idUserAdmin);
         List<DtoRole> GetRolesForUser(int idUser);
-        void ModifyUser(DtoUser userDto);
-        bool CheckUserCredentialsGetIdUser(string userName, string passwordHash, ref int idUser);
+        void ModifyUser(DtoUser userDto, int idUserAdmin);
     }
 }

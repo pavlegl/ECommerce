@@ -4,7 +4,7 @@ namespace ECommerce
 {
     public interface IECAuthContainerModel
     {
-        string SecretKey { get; set; }
+        string SecretKeyBase64 { get; set; }
         string SecurityAlgorithm { get; set; }
         int ExpireMinutes { get; set; }
 

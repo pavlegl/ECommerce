@@ -26,10 +26,17 @@ namespace ECommerce
     {
         public BaseECExceptionHandler(IECLogger logger)
         {
-            if (logger == null)
-                throw new Exception("Parameter logger must be provided.");
+            /*if (logger == null)
+                throw new Exception("Parameter logger must be provided.");*/
         }
 
+        /// <summary>
+        /// Returns a more appropriate HTTP status code with the message. Optionally can log an Exception with
+        /// IP address and IdUser who initated the request.
+        /// </summary>
+        /// <param name="ex"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
         public abstract ObjectResult ReturnHttpResponse(Exception ex, HttpRequest request);
     }
 

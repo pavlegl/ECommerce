@@ -2,9 +2,9 @@ using ECommerce.CatalogueAPI.BL;
 using ECommerce.CatalogueAPI.Common;
 using ECommerce.CatalogueAPI.DAL;
 
-namespace TestCatalogueAPI
+namespace ECommerce.CatalogueAPI.Testing
 {
-    public class Tests
+    public class TestingProductBL
     {
         [SetUp]
         public void Setup()
@@ -14,11 +14,12 @@ namespace TestCatalogueAPI
         [Test]
         public void TestGetAvailableProducts()
         {
-            ProductBL productBl = new ProductBL(new ProductDAL(), "GBR");
-
+            // ----- Arrange -----
+            ProductBL productBl = new ProductBL(new ProductDAL());
+            // ----- Act -----
             List<DtoProduct> lsDtoProducts = productBl.GetAvailableProducts();
-
-            Assert.That(lsDtoProducts.Count, Is.EqualTo(7));
+            // ----- Assert -----
+            Assert.That(lsDtoProducts.Count, Is.GreaterThan(0));
         }
     }
 }

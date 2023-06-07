@@ -9,10 +9,10 @@ namespace ECommerce.CatalogueAPI.BL
         IProductDAL _productDal = null;
         string _regionAlpha3Code = null;
 
-        public ProductBL(IProductDAL productDal, string regionAlpha3Code)
+        public ProductBL(IProductDAL productDal)
         {
             _productDal = productDal;
-            _regionAlpha3Code = regionAlpha3Code;
+            _regionAlpha3Code = "GER";
         }
 
         public List<DtoProduct> GetAvailableProducts()
@@ -23,7 +23,7 @@ namespace ECommerce.CatalogueAPI.BL
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in GetAvailableProducts(): " + ECommerce.Common.getWholeException(ex));
+                throw new Exception("Error in GetAvailableProducts(): " + ECommerce.EcCommon.getWholeException(ex));
             }
         }
 
@@ -40,7 +40,7 @@ namespace ECommerce.CatalogueAPI.BL
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in GetAvailableProducts(): " + ECommerce.Common.getWholeException(ex));
+                throw new Exception("Error in GetAvailableProducts(): " + ECommerce.EcCommon.getWholeException(ex));
             }
         }
 
@@ -52,7 +52,7 @@ namespace ECommerce.CatalogueAPI.BL
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in GetAvailableProductByIdProduct(): " + ECommerce.Common.getWholeException(ex));
+                throw new Exception("Error in GetAvailableProductByIdProduct(): " + ECommerce.EcCommon.getWholeException(ex));
             }
         }
 

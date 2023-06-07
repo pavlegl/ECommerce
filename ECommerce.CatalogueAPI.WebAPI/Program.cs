@@ -1,3 +1,8 @@
+using ECommerce;
+using ECommerce.CatalogueAPI.BL;
+using ECommerce.CatalogueAPI.Common;
+using ECommerce.CatalogueAPI.DAL;
+using Microsoft.Extensions.Configuration;
 using System.Reflection.PortableExecutable;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,17 +14,19 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var config1 = builder.Configuration["UrlECommerceIdentityApi"];
+
+
 builder.Services.AddHeaderPropagation(o =>
 {
-    // propagate the header with same name if exist
     o.Headers.Add("Authorization");
-    o.Headers.Add("Accept-Language");    // Propagate header with different name if exist
-    o.Headers.Add("Accept-Language");    // Propagate header with different name if exist
-    o.Headers.Add("Accept-Language", "Lang");    // Propagate header with same name and a default value
-    o.Headers.Add("Accept-Language", context => "en");    // Propagate header with different name and a default value
-    o.Headers.Add("Accept-Language", "Lang", context => "en");
 });
 
+builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
+builder.Services.AddScoped<IProductBL, ProductBL>();
+builder.Services.AddScoped<IProductDAL, ProductDAL>();
+builder.Services.AddSingleton<IECLogger, ECLogger>();
+builder.Services.AddSingleton<BaseECExceptionHandler>(x => new ECExceptionHttpResponseHandler(x.GetRequiredService<IECLogger>()));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

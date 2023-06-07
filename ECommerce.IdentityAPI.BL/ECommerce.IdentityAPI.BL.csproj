@@ -17,12 +17,16 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="NUnit.Runners" Version="3.12.0" />
+    <PackageReference Include="OpenCover" Version="4.7.1221" />
+    <PackageReference Include="ReportGenerator" Version="5.1.21" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.30.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ECommerce.Common\ECommerce.csproj" />
+    <ProjectReference Include="..\ECommerce.IdentityAPI.Common\ECommerce.IdentityAPI.Common.csproj" />
     <ProjectReference Include="..\ECommerce.IdentityAPI.DAL\ECommerce.IdentityAPI.DAL.csproj" />
+    <ProjectReference Include="..\ECommerce\ECommerce.csproj" />
   </ItemGroup>
 
 </Project>
