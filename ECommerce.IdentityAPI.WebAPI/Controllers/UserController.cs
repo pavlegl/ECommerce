@@ -1,0 +1,208 @@
+#nullable disable
+using ECommerce;
+using ECommerce.IdentityAPI.Common;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+
+// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+
+namespace ECommerce.IdentityAPI.WebAPI.Controllers
+{
+    [Route("api/[controller]/[action]")]
+    [ApiController]
+    public class UserController : ControllerBase
+    {
+        IECLogger _logger = null;
+        IUserBL _userBl = null;
+        IECAuthService _authService = null;
+        IHttpContextAccessor _httpContextAccessor = null;
+        BaseECExceptionHandler _excHandler = null;
+
+        public UserController(IConfiguration config, IUserBL userBL, BaseECExceptionHandler excHandler, IECLogger logger, IECAuthService authService, IHttpContextAccessor contextAccessor)
+        {
+            _authService = authService;
+            _excHandler = excHandler;
+            _logger = logger;
+            _userBl = userBL;
+            _httpContextAccessor = contextAccessor;
+        }
+
+        /// <summary>
+        /// Retrieves all User entities.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Authorize(Policy = CustomAuthPolicies.IsAdmin)]
+        public ActionResult<List<DtoUser>> GetUsers()
+        {
+            try
+            {
+                return Ok(_userBl.GetUsers());
+            }
+            catch (Exception ex)
+            {
+                return _excHandler.ReturnHttpResponse(ex, Request);
+            }
+        }
+
+        /// <summary>
+        /// Returns DtoUser object 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Authorize(Policy = CustomAuthPolicies.IsAdmin)]
+        public ActionResult<DtoUser> GetUserById(int id)
+        {
+            try
+            {
+                return Ok(_userBl.GetUserById(id));
+            }
+            catch (Exception ex)
+            {
+                return _excHandler.ReturnHttpResponse(ex, Request);
+            }
+        }
+
+        /// <summary>
+        /// Adds a new User to the DB.
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Authorize(Policy = CustomAuthPolicies.IsAdmin)]
+        public ActionResult<DtoUser> Post([FromBody] DtoUser user)
+        {
+            try
+            {
+                int idAdmin = Int32.Parse(getClaimValue(ClaimTypes.NameIdentifier));
+                return Ok(_userBl.AddUser(user, null, idAdmin));
+            }
+            catch (Exception ex)
+            {
+                return _excHandler.ReturnHttpResponse(ex, Request);
+            }
+        }
+
+        /// <summary>
+        /// Modifies the existing User.
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        /// <exception cref="ECException"></exception>
+        [HttpPut]
+        [Authorize(Policy = CustomAuthPolicies.IsAdmin)]
+        public ActionResult Put([FromBody] DtoUser user)
+        {
+            try
+            {
+                int idAdmin = Int32.Parse(getClaimValue(ClaimTypes.NameIdentifier));
+                _userBl.ModifyUser(user, idAdmin);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return _excHandler.ReturnHttpResponse(ex, Request);
+            }
+        }
+
+        [HttpPost]
+        [Authorize(Policy = CustomAuthPolicies.IsAdmin)]
+        public ActionResult SetUserOnHold([FromForm] int idUser, [FromForm] bool isOnHold)
+        {
+            try
+            {
+                int idAdmin = Int32.Parse(getClaimValue(ClaimTypes.NameIdentifier));
+                _userBl.PutUserOnHold(idUser, isOnHold, idAdmin);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return _excHandler.ReturnHttpResponse(ex, Request);
+            }
+        }
+
+        [HttpPost]
+        [Authorize(Policy = CustomAuthPolicies.IsAdmin)]
+        public ActionResult<DtoUserRole> GetUserRoles([FromForm] int idUser)
+        {
+            try
+            {
+                return Ok(_userBl.GetRolesForUser(idUser));
+            }
+            catch (Exception ex)
+            {
+                return _excHandler.ReturnHttpResponse(ex, Request);
+            }
+        }
+
+        [HttpDelete]
+        [Authorize(Policy = CustomAuthPolicies.IsAdmin)]
+        public ActionResult Delete()
+        {
+            try
+            {
+                throw new ECException(StatusCodes.Status501NotImplemented, "To put a user on hold use PutUserOnHold(int idUser, true).");
+            }
+            catch (ECException ex)
+            {
+                return _excHandler.ReturnHttpResponse(ex, Request);
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public ActionResult<string> CheckUserCredentialsCreateUserJwt([FromForm] string username, [FromForm] string password)
+        {
+            try
+            {
+                string jwt = null;
+                if (_userBl.CheckUserCredentialsCreateUserJwt(username, password, _authService, ref jwt))
+                    return Ok(jwt);
+
+                throw new ECException(StatusCodes.Status401Unauthorized, null);
+            }
+            catch (ECException ecex)
+            {
+                return _excHandler.ReturnHttpResponse(ecex, Request);
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public ActionResult<IEnumerable<Claim>> CheckJwtReturnClaims([FromBody] string jwt)
+        {
+            try
+            {
+                IEnumerable<Claim> lsClaims = null;
+                if (!_userBl.CheckJwtReturnClaims(jwt, _authService, ref lsClaims))
+                    throw new ECException(StatusCodes.Status401Unauthorized, null);
+
+                return Ok(lsClaims);
+            }
+            catch (ECException ecex)
+            {
+                return _excHandler.ReturnHttpResponse(ecex, Request);
+            }
+        }
+
+        /// <summary>
+        /// Returns custom Claim value from the authorized user.
+        /// </summary>
+        /// <param name="claimName">Name of the Claim.</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        private string getClaimValue(string claimName)
+        {
+            try
+            {
+                return _httpContextAccessor.HttpContext?.User.FindFirstValue(claimName);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error in getClaimValue('" + claimName + "'): " + EcCommon.getWholeException(ex));
+            }
+        }
+    }
+}

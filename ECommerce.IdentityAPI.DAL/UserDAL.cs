@@ -1,23 +1,16 @@
-﻿using ECommerce.Models;
-using ECommerce.IdentityAPI.DAL.Models;
+﻿#nullable disable
 using Microsoft.EntityFrameworkCore;
-
+using ECommerce.IdentityAPI.Common;
+using ECommerce.IdentityAPI.DAL.Models;
 
 namespace ECommerce.IdentityAPI.DAL
 {
     public class UserDAL : IUserDAL
     {
-        //private EcommerceContext _dbc;
-        public ECConfig _ecConfig;
+        private const string _msgUserNotFound = "User not found.";
 
         public UserDAL()
         {
-            //_dbc = new EcommerceContext();
-            _ecConfig = new ECConfig
-            {
-                ExceptionHandler = new ECExceptionHttpResponseHandler(new ECLogger()),
-                Logger = new ECLogger()
-            };
         }
 
         /// <summary>
@@ -25,18 +18,18 @@ namespace ECommerce.IdentityAPI.DAL
         /// </summary>
         /// <returns>UserDalDto object.</returns>
         /// <exception cref="Exception"></exception>
-        public List<DtoUserDal> GetUsers()
+        public List<DtoUser> GetUsers()
         {
             try
             {
                 using (EcommerceContext dbc = new EcommerceContext())
                 {
-                    return Common.Map<Models.User, DtoUserDal, List<Models.User>, List<DtoUserDal>>(dbc.Users.ToList());
+                    return EcCommon.Map<Models.User, DtoUser, List<Models.User>, List<DtoUser>>(dbc.Users.ToList());
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in GetUsers(): " + Common.getWholeException(ex));
+                throw new Exception("Error in GetUsers(): " + EcCommon.getWholeException(ex));
             }
         }
 
@@ -46,16 +39,16 @@ namespace ECommerce.IdentityAPI.DAL
         /// <param name="id">Id of the User.</param>
         /// <returns>UserDalDto object.</returns>
         /// <exception cref="Exception"></exception>
-        public DtoUserDal GetUserById(int id)
+        public DtoUser GetUserById(int id)
         {
             try
             {
-                Models.User user = findUserThrowExcIfNotFound(id);
-                return Common.Map<Models.User, DtoUserDal, Models.User, DtoUserDal>(user);
+                Models.User user = getUser(id);
+                return EcCommon.Map<Models.User, DtoUser, Models.User, DtoUser>(user);
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in GetUserById(" + id + "): " + Common.getWholeException(ex));
+                throw new Exception("Error in GetUserById(" + id + "): " + EcCommon.getWholeException(ex));
             }
         }
 
@@ -65,47 +58,99 @@ namespace ECommerce.IdentityAPI.DAL
         /// <param name="user"></param>
         /// <returns>UserDalDto object</returns>
         /// <exception cref="Exception"></exception>
-        public DtoUserDal AddUser(DtoUserDal userDAL)
+        public DtoUser AddUser(DtoUser userDAL, List<int> lsIdRoles, int idUserAdmin)
         {
             try
             {
                 using (EcommerceContext dbc = new EcommerceContext())
                 {
-                    Models.User user = Common.Map<DtoUserDal, Models.User, DtoUserDal, Models.User>(userDAL);
+                    Models.User user = EcCommon.Map<DtoUser, Models.User, DtoUser, Models.User>(userDAL);
+                    user.Uchanged = idUserAdmin;
+                    user.Tchanged = DateTime.Now;
                     dbc.Users.Add(user);
                     dbc.SaveChanges();
-                    return Common.Map<Models.User, DtoUserDal, Models.User, DtoUserDal>(user);
+
+                    if (lsIdRoles == null || lsIdRoles.Count == 0)
+                    {
+                        lsIdRoles = new List<int>();
+                        lsIdRoles.Add(EcCommon.IdRole_Customer);
+                    }
+                    foreach (int idRole in lsIdRoles)
+                    {
+                        dbc.UserRoles.Add(new UserRole { IdRole = idRole, IdUser = user.IdUser, Ucreated = idUserAdmin, Tcreated = DateTime.Now });
+                    }
+                    dbc.SaveChanges();
+                    return EcCommon.Map<Models.User, DtoUser, Models.User, DtoUser>(user);
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in AddUser(" + Common.jsonSerializeIgnoreNulls(userDAL) + "): " + Common.getWholeException(ex));
+                throw new Exception("Error in AddUser(" + EcCommon.jsonSerializeIgnoreNulls(userDAL) + "): " + EcCommon.getWholeException(ex));
             }
         }
 
         /// <summary>
-        /// Modifies the existing User.
+        /// Modifies the existing User. Throws Exception if not found.
         /// </summary>
-        /// <param name="userDAL"></param>
+        /// <param name="dtoUser"></param>
         /// <exception cref="Exception"></exception>
-        public void ModifyUser(DtoUserDal userDAL)
+        public void ModifyUser(DtoUser dtoUser, int idUserAdmin)
         {
             try
             {
-                if (userDAL == null)
+                if (dtoUser == null)
                     throw new Exception("Parameter cannot be null.");
                 using (EcommerceContext dbc = new EcommerceContext())
                 {
-                    Models.User userOrig = findUserThrowExcIfNotFound(userDAL.IdUser);
-                    Models.User user = Common.Map<DtoUserDal, Models.User, DtoUserDal, Models.User>(userDAL);
-                    //var entry = _dbc.Entry(userOrig);
-                    dbc.Entry(userOrig).State = EntityState.Modified;
+                    if (getUser(dtoUser.IdUser) == null)
+                        throw new Exception(_msgUserNotFound);
+                    Models.User userModified = EcCommon.Map<DtoUser, Models.User, DtoUser, Models.User>(dtoUser);
+                    var entry = dbc.Entry(userModified);
+                    userModified.Uchanged = idUserAdmin;
+                    userModified.Tchanged = DateTime.Now;
+                    entry.Property(e => e.IdUser).IsModified = false;
+                    entry.State = EntityState.Modified;
                     dbc.SaveChanges();
+                }
+            }
+            catch (ECException ecex)
+            {
+                throw ecex;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error in ModifyUser(" + EcCommon.jsonSerializeIgnoreNulls(dtoUser) + "," + idUserAdmin + "): " + EcCommon.getWholeException(ex));
+            }
+        }
+
+        /// <summary>
+        /// Returns roles for the specified user. If the user is not found an Exception is thrown.
+        /// </summary>
+        /// <param name="idUser"></param>
+        /// <returns></returns>
+        /// <exception cref="ECException"></exception>
+        /// <exception cref="Exception"></exception>
+        public List<DtoRole> GetRolesForUser(int idUser)
+        {
+            try
+            {
+                using (EcommerceContext dbc = new EcommerceContext())
+                {
+                    User user = getUser(idUser);
+                    if (user == null)
+                        throw new Exception(_msgUserNotFound);
+                    List<Role> lsRole = dbc.UserRoles.Where(l => l.IdUser == idUser).Join(dbc.Roles, userRole => userRole.IdRole, role => role.IdRole,
+                        (userRole, role) => new Role
+                        {
+                            IdRole = role.IdRole,
+                            Name = role.Name
+                        }).ToList();
+                    return EcCommon.Map<Role, DtoRole, List<Role>, List<DtoRole>>(lsRole);
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in ModifyUser(" + Common.jsonSerializeIgnoreNulls(userDAL) + "): " + Common.getWholeException(ex));
+                throw new Exception("Error in GetRolesForUser(" + idUser + "): " + EcCommon.getWholeException(ex));
             }
         }
 
@@ -115,64 +160,53 @@ namespace ECommerce.IdentityAPI.DAL
         /// <param name="idUser"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        private Models.User findUserThrowExcIfNotFound(int? idUser)
+        private Models.User getUser(int? idUser)
         {
-            Models.User user = null;
             try
             {
                 if (idUser == null)
                     throw new Exception("IdUser is null.");
                 using (EcommerceContext dbc = new EcommerceContext())
                 {
-                    user = dbc.Users.FirstOrDefault(l => l.IdUser == idUser);
+                    User user = dbc.Users.FirstOrDefault(l => l.IdUser == idUser);
+                    return user;
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in findUserReturn404(" + idUser + "): " + Common.getWholeException(ex));
-            }
-
-            if (user == null)
-                throw new Exception("User IdUser=" + idUser + " not found.");
-            return user;
-        }
-
-        public bool CheckUserCredentials(string userName, string passwordHash)
-        {
-            try
-            {
-                if (String.IsNullOrEmpty(userName) || string.IsNullOrEmpty(passwordHash))
-                    throw new Exception("Username or passwordHash is empty.");
-                using (EcommerceContext dbc = new EcommerceContext())
-                {
-                    return dbc.Users.Any(l => l.Username.ToLower() == userName.ToLower() && l.Password == passwordHash);
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error in CheckUserCredentials('" + userName + "','" + passwordHash + "'): " + Common.getWholeException(ex));
+                throw new Exception("Error in findUser(" + idUser + "): " + EcCommon.getWholeException(ex));
             }
         }
 
-        public List<DtoRoleDal> GetRolesForUser(int idUser)
+        /// <summary>
+        /// Finds a User object by username. If object not found, returns null.
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public DtoUser GetUserByUsername(string username)
         {
             try
             {
+                if (String.IsNullOrEmpty(username))
+                    throw new Exception("Username is empty.");
+
                 using (EcommerceContext dbc = new EcommerceContext())
                 {
-                    List<Role> lsRole = dbc.UserRoles.Where(l => l.IdUser == idUser).Join(dbc.Roles, userRole => userRole.IdRole, role => role.IdRole,
-                        (userRole, role) => new Role
-                        {
-                            IdRole = role.IdRole,
-                            Name = role.Name
-                        }).ToList();
-                    return Common.Map<Role, DtoRoleDal, List<Role>, List<DtoRoleDal>>(lsRole);
+                    User user = dbc.Users.FirstOrDefault(l => l.Username.ToLower() == username);
+                    return EcCommon.Map<User, DtoUser>(user);
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in GetRolesForUser(" + idUser + "): " + Common.getWholeException(ex));
+                throw new Exception("Error in GetUserByUsername('" + username + "'): " + EcCommon.getWholeException(ex));
             }
+
+        }
+
+        public DtoUser AddUser(DtoUser userDto, List<int> lsIdRoles)
+        {
+            throw new NotImplementedException();
         }
     }
 }

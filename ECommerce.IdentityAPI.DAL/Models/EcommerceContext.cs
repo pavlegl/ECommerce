@@ -15,16 +15,6 @@ public partial class EcommerceContext : DbContext
     {
     }
 
-    public virtual DbSet<Cart> Carts { get; set; }
-
-    public virtual DbSet<CartItem> CartItems { get; set; }
-
-    public virtual DbSet<Log> Logs { get; set; }
-
-    public virtual DbSet<Product> Products { get; set; }
-
-    public virtual DbSet<ProductType> ProductTypes { get; set; }
-
     public virtual DbSet<Role> Roles { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
@@ -37,101 +27,6 @@ public partial class EcommerceContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Cart>(entity =>
-        {
-            entity.HasKey(e => e.IdCart);
-
-            entity.ToTable("Cart");
-
-            entity.Property(e => e.DateCartCreated).HasColumnType("date");
-
-            entity.HasOne(d => d.IdUserNavigation).WithMany(p => p.Carts)
-                .HasForeignKey(d => d.IdUser)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Cart_User");
-        });
-
-        modelBuilder.Entity<CartItem>(entity =>
-        {
-            entity.HasKey(e => e.IdCartItem);
-
-            entity.ToTable("CartItem");
-
-            entity.Property(e => e.CustomRequest)
-                .HasMaxLength(250)
-                .IsUnicode(false);
-            entity.Property(e => e.DateItemAdded).HasColumnType("date");
-            entity.Property(e => e.Quantity).HasColumnType("decimal(18, 4)");
-
-            entity.HasOne(d => d.IdProductNavigation).WithMany(p => p.CartItems)
-                .HasForeignKey(d => d.IdProduct)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_CartItem_Product");
-        });
-
-        modelBuilder.Entity<Log>(entity =>
-        {
-            entity.ToTable("Log");
-
-            entity.Property(e => e.Action)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.ActionDateTime).HasColumnType("date");
-            entity.Property(e => e.Description)
-                .HasMaxLength(250)
-                .IsUnicode(false);
-        });
-
-        modelBuilder.Entity<Product>(entity =>
-        {
-            entity.HasKey(e => e.IdProduct);
-
-            entity.ToTable("Product");
-
-            entity.Property(e => e.Description)
-                .HasMaxLength(250)
-                .IsUnicode(false);
-            entity.Property(e => e.Name)
-                .HasMaxLength(100)
-                .IsUnicode(false);
-            entity.Property(e => e.Price).HasColumnType("decimal(18, 4)");
-            entity.Property(e => e.Quantity).HasColumnType("decimal(18, 4)");
-            entity.Property(e => e.Tchanged)
-                .HasColumnType("date")
-                .HasColumnName("TChanged");
-            entity.Property(e => e.Uchanged).HasColumnName("UChanged");
-
-            entity.HasOne(d => d.IdProductTypeNavigation).WithMany(p => p.Products)
-                .HasForeignKey(d => d.IdProductType)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Product_ProductType");
-
-            entity.HasOne(d => d.UchangedNavigation).WithMany(p => p.Products)
-                .HasForeignKey(d => d.Uchanged)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Product_User");
-        });
-
-        modelBuilder.Entity<ProductType>(entity =>
-        {
-            entity.HasKey(e => e.IdProductType);
-
-            entity.ToTable("ProductType");
-
-            entity.Property(e => e.Name)
-                .HasMaxLength(100)
-                .IsUnicode(false);
-            entity.Property(e => e.Tchanged)
-                .HasColumnType("date")
-                .HasColumnName("TChanged");
-            entity.Property(e => e.Uchanged).HasColumnName("UChanged");
-
-            entity.HasOne(d => d.UchangedNavigation).WithMany(p => p.ProductTypes)
-                .HasForeignKey(d => d.Uchanged)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ProductType_User");
-        });
-
         modelBuilder.Entity<Role>(entity =>
         {
             entity.HasKey(e => e.IdRole);
