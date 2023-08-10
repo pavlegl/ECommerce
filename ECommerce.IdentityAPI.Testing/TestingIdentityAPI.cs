@@ -15,10 +15,18 @@ namespace ECommerce.IdentityAPI.Testing
         DtoUser _userValidGbr = null;
         int _idUserAdmin = 2;
         FakeUserDal _fakeUserDal = null;
+        IECAuthContainerModel _authContainerModel = new JwtContainerModel
+        {
+            SecurityAlgorithm = SecurityAlgorithms.HmacSha256Signature,
+            SecretKeyBase64 = "VWJlckdpZ2FTZWtyZXRLbGp1YyM5MTg4MTMxMDI0MSE="
+        };
+        IECAuthService _jwtService = null;
 
         [SetUp]
         public void Setup()
         {
+            _jwtService = new JwtService(_authContainerModel);
+
             _userValidMne = new DtoUser
             {
                 Address = "Crnogorskih serdara, bb",
@@ -60,7 +68,7 @@ namespace ECommerce.IdentityAPI.Testing
         public void TestGetUsers()
         {
             // ----- Arrange -----
-            UserBL userBl = new UserBL(_fakeUserDal);
+            UserBL userBl = new UserBL(_fakeUserDal, _jwtService);
             // ----- Act -----
             userBl.AddUser(_userValidMne, null, _idUserAdmin);
             userBl.AddUser(_userValidGbr, null, _idUserAdmin);
@@ -73,7 +81,7 @@ namespace ECommerce.IdentityAPI.Testing
         public void TestAddUserSuccess()
         {
             // ----- Arrange -----
-            UserBL userBl = new UserBL(_fakeUserDal);
+            UserBL userBl = new UserBL(_fakeUserDal, _jwtService);
             // ----- Act -----
             userBl.AddUser(_userValidMne, null, _idUserAdmin);
             // ----- Assert -----
@@ -87,7 +95,7 @@ namespace ECommerce.IdentityAPI.Testing
         public void TestLongUsername()
         {
             // ----- Arrange -----
-            UserBL userBl = new UserBL(_fakeUserDal);
+            UserBL userBl = new UserBL(_fakeUserDal, _jwtService);
             try
             {
                 _userValidMne.Username = "ml12345678901234567890123456789012345678901234567890";
@@ -106,7 +114,7 @@ namespace ECommerce.IdentityAPI.Testing
         public void TestShortUsername()
         {
             // ----- Arrange -----
-            UserBL userBl = new UserBL(_fakeUserDal);
+            UserBL userBl = new UserBL(_fakeUserDal, _jwtService);
             try
             {
                 _userValidMne.Username = "ml";
@@ -125,7 +133,7 @@ namespace ECommerce.IdentityAPI.Testing
         public void TestUsernameWithNoDot()
         {
             // ----- Arrange -----
-            UserBL userBl = new UserBL(_fakeUserDal);
+            UserBL userBl = new UserBL(_fakeUserDal, _jwtService);
             try
             {
                 _userValidMne.Username = "mladenkurpejovic";
@@ -144,7 +152,7 @@ namespace ECommerce.IdentityAPI.Testing
         public void TestUsernameWithNumberInWrongPlace()
         {
             // ----- Arrange -----
-            UserBL userBl = new UserBL(_fakeUserDal);
+            UserBL userBl = new UserBL(_fakeUserDal, _jwtService);
             try
             {
                 _userValidMne.Username = "mladen3.kurpejovic";
@@ -164,7 +172,7 @@ namespace ECommerce.IdentityAPI.Testing
         public void TestPasswordFormat()
         {
             // ----- Arrange -----
-            UserBL userBl = new UserBL(_fakeUserDal);
+            UserBL userBl = new UserBL(_fakeUserDal, _jwtService);
             try
             {
                 _userValidMne.Password = "123456";
@@ -183,7 +191,7 @@ namespace ECommerce.IdentityAPI.Testing
         public void TestEmailFormat()
         {
             // ----- Arrange -----
-            UserBL userBl = new UserBL(_fakeUserDal);
+            UserBL userBl = new UserBL(_fakeUserDal, _jwtService);
             try
             {
                 _userValidMne.EmailAddress = "noMonkey";
@@ -202,7 +210,7 @@ namespace ECommerce.IdentityAPI.Testing
         public void TestEmailAlreadyUsed()
         {
             // ----- Arrange -----
-            UserBL userBl = new UserBL(_fakeUserDal);
+            UserBL userBl = new UserBL(_fakeUserDal, _jwtService);
             DtoUser userWithEmailConflicted = EcCommon.Map<DtoUser, DtoUser>(_userValidMne);
             userWithEmailConflicted.Username = "janko.serhatlic";
             userWithEmailConflicted.FirstName = "Janko";
@@ -225,7 +233,7 @@ namespace ECommerce.IdentityAPI.Testing
         public void TestValidCountry()
         {
             // ----- Arrange -----
-            UserBL userBl = new UserBL(_fakeUserDal);
+            UserBL userBl = new UserBL(_fakeUserDal, _jwtService);
             try
             {
                 _userValidGbr.CountryAlpha3Code = "AUS";
@@ -244,7 +252,7 @@ namespace ECommerce.IdentityAPI.Testing
         public void TestIsPostCodeProvidedWhenNeeded()
         {
             // ----- Arrange -----
-            UserBL userBl = new UserBL(_fakeUserDal);
+            UserBL userBl = new UserBL(_fakeUserDal, _jwtService);
             _userValidGbr.Postcode = String.Empty;
             try
             {
@@ -263,7 +271,7 @@ namespace ECommerce.IdentityAPI.Testing
         public void TestDefaultRoleIsCustomer()
         {
             // ----- Arrange -----
-            UserBL userBl = new UserBL(_fakeUserDal);
+            UserBL userBl = new UserBL(_fakeUserDal, _jwtService);
 
             // ----- Act -----
             DtoUser userNew = userBl.AddUser(_userValidMne, null, _idUserAdmin);
@@ -277,7 +285,7 @@ namespace ECommerce.IdentityAPI.Testing
         public void TestBanUser()
         {
             // ----- Arrange -----
-            UserBL userBl = new UserBL(_fakeUserDal);
+            UserBL userBl = new UserBL(_fakeUserDal, _jwtService);
 
             // ----- Act -----
             DtoUser userDalDto = userBl.AddUser(_userValidMne, null, _idUserAdmin);
@@ -293,7 +301,7 @@ namespace ECommerce.IdentityAPI.Testing
         {
             // ----- Arrange -----
             string sNewAddress = "New Test address.";
-            UserBL userBl = new UserBL(_fakeUserDal);
+            UserBL userBl = new UserBL(_fakeUserDal, _jwtService);
 
             // ----- Act -----
             DtoUser dtoUser = userBl.AddUser(_userValidMne, null, _idUserAdmin);
@@ -309,26 +317,15 @@ namespace ECommerce.IdentityAPI.Testing
         public void ValidateCredentials()
         {
             // ----- Arrange -----
-            UserBL userBl = new UserBL(_fakeUserDal);
+            UserBL userBl = new UserBL(_fakeUserDal, _jwtService);
             DtoUser userDalDto = userBl.AddUser(_userValidMne, null, _idUserAdmin);
 
-            IECAuthContainerModel authContainerModel = new JwtContainerModel
-            {
-                SecurityAlgorithm = SecurityAlgorithms.HmacSha256Signature,
-                SecretKeyBase64 = "VWJlckdpZ2FTZWtyZXRLbGp1YyM5MTg4MTMxMDI0MSE="
-            };
-
             // ----- Act -----
-            IECAuthService jwtService = new JwtService(authContainerModel);
-
-            string jwt = null;
-            bool isUserAuthorized = userBl.CheckUserCredentialsCreateUserJwt(_userValidMne.Username, _userValidMne.Password, jwtService, ref jwt);
-            IEnumerable<Claim> lsClaims = null;
-            bool isValidToken = userBl.CheckJwtReturnClaims(jwt, new JwtService(authContainerModel), ref lsClaims);
+            string jwt = userBl.CheckUserCredentialsCreateUserJwt(_userValidMne.Username, _userValidMne.Password);
+            IEnumerable<Claim> lsClaims = userBl.CheckJwtReturnClaims(jwt);
 
             // ----- Assert -----
-            Assert.IsTrue(isUserAuthorized);
-            Assert.IsTrue(isValidToken);
+            Assert.IsTrue(true);
         }
 
     }

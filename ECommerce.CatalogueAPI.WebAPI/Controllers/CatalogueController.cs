@@ -1,10 +1,16 @@
 #nullable disable
 using ECommerce.CatalogueAPI.BL;
 using ECommerce.CatalogueAPI.Common;
+using ECommerce.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
+using System;
+using System.Net;
+using System.Net.Http.Headers;
+using System.Text;
 
 namespace ECommerce.CatalogueAPI.WebAPI.Controllers
 {
@@ -12,14 +18,14 @@ namespace ECommerce.CatalogueAPI.WebAPI.Controllers
     [ApiController]
     public class CatalogueController : ControllerBase
     {
-        IConfiguration _config;
+        MainOptions _options;
         IECLogger _logger = null;
         IProductBL _productBl = null;
         BaseECExceptionHandler _excHandler = null;
 
-        public CatalogueController(IConfiguration config, IProductBL productBl, BaseECExceptionHandler excHandler, IECLogger logger)
+        public CatalogueController(IOptionsSnapshot<MainOptions> options, IProductBL productBl, BaseECExceptionHandler excHandler, IECLogger logger)
         {
-            _config = config;
+            _options = options.Get(MainOptions.OptionsName);
             _productBl = productBl;
             _logger = logger;
             _excHandler = excHandler;
@@ -30,15 +36,25 @@ namespace ECommerce.CatalogueAPI.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost]
-        protected ActionResult AuthenticateUser([FromForm] string username, [FromForm] string password)
+        public async Task<ActionResult> AuthenticateUser([FromBody] UserPass userPass)// [FromForm] string username, [FromForm] string password)
         {
-            try
+            using (var client = new HttpClient())
             {
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return _excHandler.ReturnHttpResponse(ex, Request);
+                //string sUrlIdentityApi = ECommerce.EcCommon.getConfigVar("UrlECommerceIdentityApi", _options, true);
+
+                client.BaseAddress = new Uri(_options.UrlECommerceIdentityApi);// sUrlIdentityApi);
+                client.DefaultRequestHeaders
+                      .Accept
+                      .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "CheckUserCredentialsCreateUserJwt");
+                request.Content = new StringContent("{ \"UserName\":\"" + userPass.Username + "\", \"Password\":\"" + userPass.Password + "\"}",
+                                                    Encoding.UTF8,
+                                                    "application/json");
+
+                var response = await client.SendAsync(request);
+                string sResp = await response.Content.ReadAsStringAsync();
+                return this.StatusCode((int)response.StatusCode, sResp);
             }
         }
 
@@ -73,23 +89,18 @@ namespace ECommerce.CatalogueAPI.WebAPI.Controllers
                 throw new ECException(StatusCodes.Status400BadRequest, "Not a Bearer authentication.");
             string[] arAuth = authorizationHeader[0].Split(' ');
             string jwt = arAuth[1];
-
-
         }
 
         private async Task callECommerceIdentityApi()
         {
             using (var httpClient = new HttpClient())
             {
-                string sUrlIdentityApi = _config["UrlECommerceIdentityApi"];
+                string sUrlIdentityApi = _options.UrlECommerceIdentityApi;
                 SvcIdentityApi svc = new SvcIdentityApi(sUrlIdentityApi, httpClient);
                 //......
                 //......
                 //......
             }
         }
-
-
-
     }
 }

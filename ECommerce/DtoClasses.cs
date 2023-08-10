@@ -19,4 +19,11 @@ namespace ECommerce.Models
         public bool IsActive { get; set; }
         public bool IsCustomizable { get; set; }
     }
+
+    public class UserPass
+    {
+        public string Username { get; set; } = null!;
+        public string Password { get; set; } = null!;
+    }
+
 }

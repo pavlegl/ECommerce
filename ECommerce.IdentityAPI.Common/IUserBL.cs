@@ -8,9 +8,9 @@ namespace ECommerce.IdentityAPI.Common
         DtoUser GetUserById(int idUser);
         DtoUser AddUser(DtoUser user, List<int> lsIdRoles, int idUserAdmin);
         void ModifyUser(DtoUser user, int idUserAdmin);
-        bool CheckUserCredentialsCreateUserJwt(string userName, string password, IECAuthService authService, ref string jwt);
+        string CheckUserCredentialsCreateUserJwt(string userName, string password);
 
-        bool CheckJwtReturnClaims(string jwt, ECommerce.IECAuthService authService, ref IEnumerable<Claim> lsClaims);
+        IEnumerable<Claim> CheckJwtReturnClaims(string jwt);
         List<DtoRole> GetRolesForUser(int idUser);
         void PutUserOnHold(int idUser, bool isOnHold, int idAdminUser);
         string CreateToken(IECAuthContainerModel authContainerModel, IECAuthService authService);

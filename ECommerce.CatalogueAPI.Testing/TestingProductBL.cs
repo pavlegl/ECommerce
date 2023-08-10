@@ -15,7 +15,7 @@ namespace ECommerce.CatalogueAPI.Testing
         public void TestGetAvailableProducts()
         {
             // ----- Arrange -----
-            ProductBL productBl = new ProductBL(new ProductDAL());
+            ProductBL productBl = new ProductBL(new ProductDAL(new DAL.Models.EcommerceContext()), "GER");
             // ----- Act -----
             List<DtoProduct> lsDtoProducts = productBl.GetAvailableProducts();
             // ----- Assert -----

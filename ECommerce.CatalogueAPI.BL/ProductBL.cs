@@ -7,19 +7,19 @@ namespace ECommerce.CatalogueAPI.BL
     public class ProductBL : IProductBL
     {
         IProductDAL _productDal = null;
-        string _regionAlpha3Code = null;
+        string _appRegionAlpha3Code = null;
 
-        public ProductBL(IProductDAL productDal)
+        public ProductBL(IProductDAL productDal, string appRegionAlpha3Code)
         {
             _productDal = productDal;
-            _regionAlpha3Code = "GER";
+            _appRegionAlpha3Code = appRegionAlpha3Code;
         }
 
         public List<DtoProduct> GetAvailableProducts()
         {
             try
             {
-                return _productDal.GetAvailableProducts(_regionAlpha3Code);
+                return _productDal.GetAvailableProducts(_appRegionAlpha3Code);
             }
             catch (Exception ex)
             {
@@ -36,7 +36,7 @@ namespace ECommerce.CatalogueAPI.BL
         {
             try
             {
-                return _productDal.GetAvailableProductsByProductType(_regionAlpha3Code, idProductType);
+                return _productDal.GetAvailableProductsByProductType(_appRegionAlpha3Code, idProductType);
             }
             catch (Exception ex)
             {
@@ -48,7 +48,7 @@ namespace ECommerce.CatalogueAPI.BL
         {
             try
             {
-                return _productDal.GetAvailableProductByIdProduct(_regionAlpha3Code, idProduct);
+                return _productDal.GetAvailableProductByIdProduct(_appRegionAlpha3Code, idProduct);
             }
             catch (Exception ex)
             {

@@ -60,31 +60,6 @@ namespace ECommerce.IdentityAPI.BL
         }
 
         /// <summary>
-        /// Generates token for the given model.
-        /// Validates whether the given model is valid, then gets the symmetric key.
-        /// Encrypts the token and returns it.
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns>Generated token.</returns>
-        /// <exception cref="ArgumentException"></exception>
-        /*public string GenerateToken(IAuthContainerModel model)
-        {
-            if (model == null || model.Claims == null || model.Claims.Length == 0)
-                throw new ArgumentException("Parameter is null or the Claims property is empty.");
-
-            SecurityTokenDescriptor securityTokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(model.Claims),
-                Expires = DateTime.UtcNow.AddMinutes(Convert.ToInt32(model.ExpireMinutes)),
-                SigningCredentials = new SigningCredentials(GetSymmetricSecurityKey(), model.SecurityAlgorithm)
-            };
-            JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
-            SecurityToken securityToken = jwtSecurityTokenHandler.CreateToken(securityTokenDescriptor);
-            string token = jwtSecurityTokenHandler.WriteToken(securityToken);
-            return token;
-        }*/
-
-        /// <summary>
         /// Generates JWT token for the given model.
         /// Validates whether the given model is valid, then gets the symmetric key.
         /// Encrypts the token and returns it.

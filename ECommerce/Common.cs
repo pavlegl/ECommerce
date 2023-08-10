@@ -5,6 +5,7 @@ using System.Text;
 using System.Security.Cryptography;
 using Newtonsoft.Json;
 using AutoMapper;
+using Microsoft.Extensions.Configuration;
 
 namespace ECommerce
 {
@@ -13,6 +14,7 @@ namespace ECommerce
         public const string Roles = "Roles";
         public const string IsAdmin = "IsAdmin";
         public const string IsCustomer = "IsCustomer";
+        public const string exp = "exp";
     }
 
     public class CustomAuthPolicies
@@ -86,6 +88,21 @@ namespace ECommerce
             return JsonConvert.SerializeObject(obj, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
         }
 
+        public static string getConfigVar(string varName, IConfiguration config, bool isMandatory)
+        {
+            if (config == null)
+                throw new Exception("Config provider is null.");
+            if (string.IsNullOrWhiteSpace(varName))
+                throw new Exception("Parameter varName is empty.");
+            if (isMandatory && String.IsNullOrEmpty(config[varName]))
+                throw new Exception("Config variable '" + varName + "' is empty.");
+            return config[varName];
+        }
+
+        public static string formatDateTime(DateTime dat)
+        {
+            return dat.ToString("dd.MM.yyyy HH:mm:ss");
+        }
     }
 
     /*public interface IECConfig
@@ -109,5 +126,4 @@ namespace ECommerce
         }
 
     }*/
-
 }

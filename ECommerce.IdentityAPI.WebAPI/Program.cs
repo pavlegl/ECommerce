@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,10 +18,11 @@ builder.Services.AddSwaggerGen();
 
 var config = builder.Configuration;
 
-// ----- Halfway in implementing connection strings -----
-// builder.Services.AddDbContext<EcommerceContext>(options => options.UseSqlServer(config.GetConnectionString("ECommerceConnString")));
+builder.Services.Configure<MainOptions>(MainOptions.OptionsName, config);
+MainOptions mainOptions = builder.Configuration.Get<MainOptions>();
+builder.Services.AddDbContext<EcommerceContext>(options => options.UseSqlServer(mainOptions.ConnectionStrings.ECommerceConnString));
 
-string sJwtKeyBase64 = config["JwtSettings:SecretKey"];
+string sJwtKeyBase64 = mainOptions.JwtSettings.SecretKey;
 byte[] arJwtKey = Convert.FromBase64String(sJwtKeyBase64);
 
 builder.Services.AddAuthentication(l =>
@@ -48,17 +48,18 @@ builder.Services.AddAuthorization(l =>
     l.AddPolicy(CustomAuthPolicies.IsCustomer, o => o.RequireClaim(CustomClaims.IsCustomer, "true"));
 });
 
+
 builder.Services.AddHeaderPropagation(o =>
 {
     o.Headers.Add("Authorization");
 });
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddSingleton<IConfiguration>(config);
+//builder.Services.AddSingleton<IConfiguration>(config);
+builder.Services.AddScoped<IUserDAL, UserDAL>();//(l => new UserDAL(mainOptions, l.GetRequiredService<EcommerceContext>()));
 builder.Services.AddScoped<IUserBL, UserBL>();
-builder.Services.AddScoped<IUserDAL, UserDAL>();
 builder.Services.AddSingleton<IECLogger, ECLogger>();
-builder.Services.AddSingleton<BaseECExceptionHandler>(x => new ECExceptionHttpResponseHandler(x.GetRequiredService<IECLogger>()));
+builder.Services.AddSingleton<BaseECExceptionHandler>(l => new ECExceptionHttpResponseHandler(l.GetRequiredService<IECLogger>()));
 builder.Services.AddScoped<IECAuthContainerModel>(l => new JwtContainerModel
 {
     SecurityAlgorithm = SecurityAlgorithms.HmacSha256Signature,

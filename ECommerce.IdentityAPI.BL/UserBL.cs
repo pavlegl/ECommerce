@@ -1,12 +1,8 @@
 ﻿using ECommerce.IdentityAPI.Common;
-using ECommerce.IdentityAPI.DAL;
-using ECommerce.IdentityAPI.DAL.Models;
-using ECommerce.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
-using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace ECommerce.IdentityAPI.BL
@@ -14,11 +10,13 @@ namespace ECommerce.IdentityAPI.BL
     public class UserBL : IUserBL
     {
         private IUserDAL _userDal;
+        private IECAuthService _authService;
         private const string _msgUserNotFound = "The user was not found.";
 
-        public UserBL(IUserDAL userDal)
+        public UserBL(IUserDAL userDal, IECAuthService authService)
         {
             _userDal = userDal;
+            _authService = authService;
         }
 
         public List<DtoUser> GetUsers()
@@ -77,7 +75,8 @@ namespace ECommerce.IdentityAPI.BL
         /// <param name="jwt">JWT token</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public bool CheckUserCredentialsCreateUserJwt(string username, string password, IECAuthService authService, ref string jwt)
+        [HttpPost]
+        public string CheckUserCredentialsCreateUserJwt(string username, string password)
         {
             try
             {
@@ -85,12 +84,12 @@ namespace ECommerce.IdentityAPI.BL
                     throw new ECException(StatusCodes.Status401Unauthorized, "Username or password is empty.");
 
                 DtoUser dtoUser = _userDal.GetUserByUsername(username);
-                if (dtoUser.IsOnHold || (dtoUser.Password != EcCommon.hashSha256(password)))
-                    return false;
+                if (dtoUser == null || dtoUser.IsOnHold || (dtoUser.Password != EcCommon.hashSha256(password)))
+                    throw new ECException(StatusCodes.Status401Unauthorized, "Bad credentials or user is on hold.");
 
                 List<DtoRole> lsRoles = GetRolesForUser(dtoUser.IdUser);
 
-                IECAuthContainerModel model = authService.AuthContainerModel;
+                IECAuthContainerModel model = _authService.AuthContainerModel;
                 if (model == null)
                     throw new Exception("AuthContainerModel property is null.");
                 if (String.IsNullOrEmpty(model.SecretKeyBase64))
@@ -102,12 +101,12 @@ namespace ECommerce.IdentityAPI.BL
                         new Claim(ClaimTypes.NameIdentifier, dtoUser.IdUser.ToString()),
                         new Claim(CustomClaims.Roles, String.Join(',', lsRoles.Select(l=>l.IdRole))),
                         new Claim(CustomClaims.IsAdmin, lsRoles.Any(l => l.IdRole == EcCommon.IdRole_Admin).ToString().ToLower()),
-                        new Claim(CustomClaims.IsCustomer, lsRoles.Any(l => l.IdRole == EcCommon.IdRole_Customer).ToString().ToLower())
+                        new Claim(CustomClaims.IsCustomer, lsRoles.Any(l => l.IdRole == EcCommon.IdRole_Customer).ToString().ToLower()),
+                        new Claim(CustomClaims.exp, EcCommon.formatDateTime(DateTime.Now.AddDays(1)))
                     };
 
-                authService.AuthContainerModel.Claims = arClaims;
-                jwt = authService.GenerateToken();
-                return true;
+                _authService.AuthContainerModel.Claims = arClaims;
+                return _authService.GenerateToken();
             }
             catch (ECException ecex)
             {
@@ -125,20 +124,24 @@ namespace ECommerce.IdentityAPI.BL
         /// <param name="jwt">Jwt token for validation.</param>
         /// <returns>Indicator of successful validation.</returns>
         /// <exception cref="Exception"></exception>
-        public bool CheckJwtReturnClaims(string jwt, IECAuthService authService, ref IEnumerable<Claim> lsClaims)
+        public IEnumerable<Claim> CheckJwtReturnClaims(string jwt)
         {
             try
             {
                 if (string.IsNullOrEmpty(jwt))
                     throw new Exception("Jwt token is empty.");
-                if (!authService.IsTokenValid(jwt))
-                    return false;
-                lsClaims = authService.GetTokenClaims(jwt);
-                return true;
+                if (!_authService.IsTokenValid(jwt))
+                    throw new ECException(StatusCodes.Status401Unauthorized, "JWT token is not valid.");
+
+                return _authService.GetTokenClaims(jwt);
+            }
+            catch (ECException ecex)
+            {
+                throw ecex;
             }
             catch (Exception ex)
             {
-                throw new Exception("Error in CheckJwtReturnClaims('" + jwt + "'," + EcCommon.jsonSerializeIgnoreNulls(authService) + "): " + EcCommon.getWholeException(ex));
+                throw new Exception("Error in CheckJwtReturnClaims('" + jwt + "'," + EcCommon.jsonSerializeIgnoreNulls(_authService) + "): " + EcCommon.getWholeException(ex));
             }
         }
 

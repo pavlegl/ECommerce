@@ -2,8 +2,9 @@ using ECommerce;
 using ECommerce.CatalogueAPI.BL;
 using ECommerce.CatalogueAPI.Common;
 using ECommerce.CatalogueAPI.DAL;
+using ECommerce.CatalogueAPI.DAL.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using System.Reflection.PortableExecutable;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,17 +15,21 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var config1 = builder.Configuration["UrlECommerceIdentityApi"];
-
+var config = builder.Configuration;
+builder.Services.Configure<MainOptions>(MainOptions.OptionsName, config);
+MainOptions mainOptions = builder.Configuration.Get<MainOptions>();
 
 builder.Services.AddHeaderPropagation(o =>
 {
     o.Headers.Add("Authorization");
 });
+//builder.Services.AddHttpClient<MyClient>().AddHeaderPropagation();
 
-builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
-builder.Services.AddScoped<IProductBL, ProductBL>();
-builder.Services.AddScoped<IProductDAL, ProductDAL>();
+builder.Services.AddDbContext<EcommerceContext>(options => options.UseSqlServer(mainOptions.ConnectionStrings.ECommerceConnString)); // config.GetConnectionString("ECommerceConnString"));
+
+builder.Services.AddSingleton<IConfiguration>(config);
+builder.Services.AddScoped<IProductDAL>(x => new ProductDAL(x.GetRequiredService<EcommerceContext>()));
+builder.Services.AddScoped<IProductBL>(x => new ProductBL(x.GetRequiredService<IProductDAL>(), mainOptions.CurrentRegionAlpha3Code));
 builder.Services.AddSingleton<IECLogger, ECLogger>();
 builder.Services.AddSingleton<BaseECExceptionHandler>(x => new ECExceptionHttpResponseHandler(x.GetRequiredService<IECLogger>()));
 var app = builder.Build();

@@ -9,16 +9,19 @@ namespace ECommerce.CatalogueAPI.DAL
 {
     public class ProductDAL : IProductDAL
     {
-        public ProductDAL()
+        EcommerceContext _dbc = null;
+
+        public ProductDAL(EcommerceContext dbc)
         {
+            _dbc = dbc;
         }
 
-        private IEnumerable<DtoProduct> getAllProductsByRegionQuery(EcommerceContext dbc, string regionAlpha3Code)
+        private IEnumerable<DtoProduct> getAllProductsByRegionQuery(string regionAlpha3Code)
         {
-            return (from p in dbc.Products
-                    join pr in dbc.ProductRegions on new { IdProduct = p.IdProduct, RegionAlpha3Code = regionAlpha3Code } equals new { IdProduct = pr.IdProduct, RegionAlpha3Code = pr.CountryAlpha3Code }
-                    join pt in dbc.ProductTypes on p.IdProductType equals pt.IdProductType
-                    join b in dbc.Brands on p.IdBrand equals b.IdBrand
+            return (from p in _dbc.Products
+                    join pr in _dbc.ProductRegions on new { IdProduct = p.IdProduct, RegionAlpha3Code = regionAlpha3Code } equals new { IdProduct = pr.IdProduct, RegionAlpha3Code = pr.CountryAlpha3Code }
+                    join pt in _dbc.ProductTypes on p.IdProductType equals pt.IdProductType
+                    join b in _dbc.Brands on p.IdBrand equals b.IdBrand
                     where p.IsActive == true
                     select new DtoProduct
                     {
@@ -46,15 +49,12 @@ namespace ECommerce.CatalogueAPI.DAL
         {
             try
             {
-                using (EcommerceContext dbc = new EcommerceContext())
-                {
-                    var query = getAllProductsByRegionQuery(dbc, regionAlpha3Code);
-                    /*if (!String.IsNullOrEmpty(regionAlpha3Code))
-                        query = query.Where(l => l.CountryAlpha3Code == regionAlpha3Code);*/
+                var query = getAllProductsByRegionQuery(regionAlpha3Code);
+                /*if (!String.IsNullOrEmpty(regionAlpha3Code))
+                    query = query.Where(l => l.CountryAlpha3Code == regionAlpha3Code);*/
 
-                    List<DtoProduct> lsProducts = (List<DtoProduct>)query.ToList();
-                    return lsProducts;
-                }
+                List<DtoProduct> lsProducts = (List<DtoProduct>)query.ToList();
+                return lsProducts;
             }
             catch (Exception ex)
             {
@@ -73,17 +73,14 @@ namespace ECommerce.CatalogueAPI.DAL
         {
             try
             {
-                using (EcommerceContext dbc = new EcommerceContext())
-                {
-                    var query = getAllProductsByRegionQuery(dbc, regionAlpha3Code);
-                    if (!String.IsNullOrEmpty(regionAlpha3Code))
-                        query = query.Where(l => l.CountryAlpha3Code == regionAlpha3Code);
+                var query = getAllProductsByRegionQuery(regionAlpha3Code);
+                if (!String.IsNullOrEmpty(regionAlpha3Code))
+                    query = query.Where(l => l.CountryAlpha3Code == regionAlpha3Code);
 
-                    query = query.Where(l => l.IdProductType == idProductType);
+                query = query.Where(l => l.IdProductType == idProductType);
 
-                    List<DtoProduct> lsProducts = (List<DtoProduct>)query.ToList();
-                    return lsProducts;
-                }
+                List<DtoProduct> lsProducts = (List<DtoProduct>)query.ToList();
+                return lsProducts;
             }
             catch (Exception ex)
             {
@@ -102,17 +99,14 @@ namespace ECommerce.CatalogueAPI.DAL
         {
             try
             {
-                using (EcommerceContext dbc = new EcommerceContext())
-                {
-                    var query = getAllProductsByRegionQuery(dbc, regionAlpha3Code);
-                    if (!String.IsNullOrEmpty(regionAlpha3Code))
-                        query = query.Where(l => l.CountryAlpha3Code == regionAlpha3Code);
+                var query = getAllProductsByRegionQuery(regionAlpha3Code);
+                if (!String.IsNullOrEmpty(regionAlpha3Code))
+                    query = query.Where(l => l.CountryAlpha3Code == regionAlpha3Code);
 
-                    query = query.Where(l => l.IdProduct == idProduct);
+                query = query.Where(l => l.IdProduct == idProduct);
 
-                    List<DtoProduct> lsProducts = (List<DtoProduct>)query.ToList();
-                    return lsProducts;
-                }
+                List<DtoProduct> lsProducts = (List<DtoProduct>)query.ToList();
+                return lsProducts;
             }
             catch (Exception ex)
             {

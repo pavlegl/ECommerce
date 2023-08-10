@@ -1,8 +1,10 @@
 #nullable disable
-using ECommerce;
 using ECommerce.IdentityAPI.Common;
+using ECommerce.IdentityAPI.DAL.Models;
+using ECommerce.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -153,15 +155,12 @@ namespace ECommerce.IdentityAPI.WebAPI.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public ActionResult<string> CheckUserCredentialsCreateUserJwt([FromForm] string username, [FromForm] string password)
+        public ActionResult<string> CheckUserCredentialsCreateUserJwt([FromBody] UserPass userPass)
         {
             try
             {
-                string jwt = null;
-                if (_userBl.CheckUserCredentialsCreateUserJwt(username, password, _authService, ref jwt))
-                    return Ok(jwt);
-
-                throw new ECException(StatusCodes.Status401Unauthorized, null);
+                string jwt = _userBl.CheckUserCredentialsCreateUserJwt(userPass.Username, userPass.Password);
+                return Ok(jwt);
             }
             catch (ECException ecex)
             {
@@ -175,10 +174,7 @@ namespace ECommerce.IdentityAPI.WebAPI.Controllers
         {
             try
             {
-                IEnumerable<Claim> lsClaims = null;
-                if (!_userBl.CheckJwtReturnClaims(jwt, _authService, ref lsClaims))
-                    throw new ECException(StatusCodes.Status401Unauthorized, null);
-
+                IEnumerable<Claim> lsClaims = _userBl.CheckJwtReturnClaims(jwt);
                 return Ok(lsClaims);
             }
             catch (ECException ecex)

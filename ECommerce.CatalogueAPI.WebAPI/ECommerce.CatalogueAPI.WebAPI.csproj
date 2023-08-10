@@ -21,6 +21,7 @@
     <PackageReference Include="OpenCover" Version="4.7.1221" />
     <PackageReference Include="ReportGenerator" Version="5.1.21" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+    <InternalsVisibleTo Include="$(Assembly).IntegrationTesting"/>
   </ItemGroup>
 
   <ItemGroup>
