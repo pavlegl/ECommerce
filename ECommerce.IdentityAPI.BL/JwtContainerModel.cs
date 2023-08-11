@@ -1,11 +1,12 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿#nullable disable
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 
 namespace ECommerce.IdentityAPI.BL
 {
     public class JwtContainerModel : IECAuthContainerModel
     {
-        public string SecretKey { get; set; }
+        public string SecretKeyBase64 { get; set; }
         public string SecurityAlgorithm { get; set; } = SecurityAlgorithms.HmacSha256Signature;
         public int ExpireMinutes { get; set; } = 1440;
 
