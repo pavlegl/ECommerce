@@ -4,6 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>949f5035-1baa-49d0-89be-e337b8a10a4c</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +22,7 @@
     <PackageReference Include="OpenCover" Version="4.7.1221" />
     <PackageReference Include="ReportGenerator" Version="5.1.21" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
-    <InternalsVisibleTo Include="$(Assembly).IntegrationTesting"/>
+    <InternalsVisibleTo Include="$(Assembly).IntegrationTesting" />
   </ItemGroup>
 
   <ItemGroup>
