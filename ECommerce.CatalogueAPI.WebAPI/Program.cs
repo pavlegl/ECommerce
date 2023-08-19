@@ -49,4 +49,20 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+app.Use(async (context, next) =>
+{
+    // Do work that can write to the Response.
+    Console.WriteLine("Hello from 1st delegate, before next.Invoke().");
+    //await context.Response.WriteAsync("Hello from 1st delegate.");
+    await next.Invoke();
+    Console.WriteLine("Hello from 1st delegate, after next.Invoke().");
+    // Do logging or other work that doesn't write to the Response.
+});
+
+/*app.Run(async context =>
+{
+    Console.WriteLine("Hello from 2nd delegate.");
+    //await context.Response.WriteAsync("Hello from 2nd delegate.");
+});*/
+
 app.Run();

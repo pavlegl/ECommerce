@@ -38,14 +38,7 @@ namespace ECommerce.IdentityAPI.WebAPI.Controllers
         [Authorize(Policy = CustomAuthPolicies.IsAdmin)]
         public ActionResult<List<DtoUser>> GetUsers()
         {
-            try
-            {
-                return Ok(_userBl.GetUsers());
-            }
-            catch (Exception ex)
-            {
-                return _excHandler.ReturnHttpResponse(ex, Request);
-            }
+            return Ok(_userBl.GetUsers());
         }
 
         /// <summary>
