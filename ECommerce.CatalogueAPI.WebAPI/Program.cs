@@ -49,20 +49,21 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+/*app.MapWhen(l => l.Request.Query.ContainsKey("hacktheplanet"),
+        p => p.Use(async ctx => await ctx.Response.WriteAsync("My IP  Is :" + ctx.Request.HttpContext.Connection.RemoteIpAddress)));
+*/
+
+app.MapWhen(
+        c => c.Request.Query.ContainsKey("hacktheplanet"), a => a.Run(async context =>
+        {
+            context.Response.Redirect("https://www.imdb.com/title/tt0113243/?ref_=nv_sr_srsg_0_tt_8_nm_0_q_hackers");
+        }));
+
 app.Use(async (context, next) =>
 {
-    // Do work that can write to the Response.
-    Console.WriteLine("Hello from 1st delegate, before next.Invoke().");
-    //await context.Response.WriteAsync("Hello from 1st delegate.");
+    Console.WriteLine("Hello from CatalogueAPI custom delegate, before next.Invoke().");
     await next.Invoke();
-    Console.WriteLine("Hello from 1st delegate, after next.Invoke().");
-    // Do logging or other work that doesn't write to the Response.
+    Console.WriteLine("Hello from CatalogueAPI custom delegate, after next.Invoke().");
 });
-
-/*app.Run(async context =>
-{
-    Console.WriteLine("Hello from 2nd delegate.");
-    //await context.Response.WriteAsync("Hello from 2nd delegate.");
-});*/
 
 app.Run();

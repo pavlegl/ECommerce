@@ -69,6 +69,8 @@ builder.Services.AddScoped<IECAuthContainerModel>(l => new JwtContainerModel
 });
 builder.Services.AddScoped<IECAuthService>(l => new JwtService(l.GetRequiredService<IECAuthContainerModel>()));
 
+builder.Services.AddScoped<IFixedGuidProvider, FixedGuidProvider>(); // <--- Test scoped service.
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -77,7 +79,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseMiddleware<CustomMiddleware>();
+
+app.UseMiddleware<CustomMiddleware>(new FixedGuidProvider()); // <--- Test singleton service via constructor.
 app.UseExceptionHandler("/api/ExcHandler/HandleError");
 app.UseHttpsRedirection();
 

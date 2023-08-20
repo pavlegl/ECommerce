@@ -15,19 +15,17 @@ namespace ECommerce.IdentityAPI.WebAPI.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        IECLogger _logger = null;
         IUserBL _userBl = null;
-        IECAuthService _authService = null;
         IHttpContextAccessor _httpContextAccessor = null;
         BaseECExceptionHandler _excHandler = null;
+        private IFixedGuidProvider _singleGuidProvider;
 
-        public UserController(IConfiguration config, IUserBL userBL, BaseECExceptionHandler excHandler, IECLogger logger, IECAuthService authService, IHttpContextAccessor contextAccessor)
+        public UserController(IConfiguration config, IUserBL userBL, BaseECExceptionHandler excHandler, IHttpContextAccessor contextAccessor, IFixedGuidProvider singleGuidProvider)
         {
-            _authService = authService;
             _excHandler = excHandler;
-            _logger = logger;
             _userBl = userBL;
             _httpContextAccessor = contextAccessor;
+            _singleGuidProvider = singleGuidProvider;
         }
 
         /// <summary>
@@ -176,6 +174,14 @@ namespace ECommerce.IdentityAPI.WebAPI.Controllers
             }
         }
 
+        [AllowAnonymous]
+        [HttpGet]
+        public string TestSingleGuidProvider()
+        {
+            return _singleGuidProvider.GetGuid();
+        }
+
+
         /// <summary>
         /// Returns custom Claim value from the authorized user.
         /// </summary>
@@ -193,5 +199,6 @@ namespace ECommerce.IdentityAPI.WebAPI.Controllers
                 throw new Exception("Error in getClaimValue('" + claimName + "'): " + EcCommon.getWholeException(ex));
             }
         }
+
     }
 }

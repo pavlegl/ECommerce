@@ -9,17 +9,19 @@ namespace ECommerce.IdentityAPI.WebAPI
     public class CustomMiddleware
     {
         private readonly RequestDelegate _next;
+        private IFixedGuidProvider _fgpSingleton;
 
-        public CustomMiddleware(RequestDelegate next)
+        public CustomMiddleware(RequestDelegate next, IFixedGuidProvider fgpSingleton)
         {
             _next = next;
+            _fgpSingleton = fgpSingleton;
         }
 
-        public async Task Invoke(HttpContext httpContext)
+        public async Task InvokeAsync(HttpContext httpContext, IFixedGuidProvider fgpScoped)
         {
             var req = httpContext.Request;
-            
-            Console.WriteLine("Message from CustomMiddleware: " + req.Path.ToString()+" | Method: " +req.Method);
+
+            Console.WriteLine("Message from CustomMiddleware | GuidSingleton=" + _fgpSingleton.GetGuid() + " | GuidScoped=" + fgpScoped.GetGuid() + "): " + req.Path.ToString() + " | Method: " + req.Method);
             await _next(httpContext);
         }
     }
