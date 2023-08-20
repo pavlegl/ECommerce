@@ -16,22 +16,10 @@ namespace ECommerce.IdentityAPI.WebAPI.Controllers
     [ApiController]
     public class ExcHandlerController : ControllerBase
     {
-        IECLogger _logger = null;
-        IUserBL _userBl = null;
-        IECAuthService _authService = null;
-        IHttpContextAccessor _httpContextAccessor = null;
-        BaseECExceptionHandler _excHandler = null;
-
-        public ExcHandlerController(IConfiguration config, IUserBL userBL, BaseECExceptionHandler excHandler, IECLogger logger, IECAuthService authService, IHttpContextAccessor contextAccessor)
+        public ExcHandlerController()
         {
-            _authService = authService;
-            _excHandler = excHandler;
-            _logger = logger;
-            _userBl = userBL;
-            _httpContextAccessor = contextAccessor;
         }
 
-        /*[Route("api/ExcHandler/HandleError")]*/
         [HttpGet]
         public IActionResult HandleError()
         {
