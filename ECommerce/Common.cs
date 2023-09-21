@@ -105,6 +105,26 @@ namespace ECommerce
         }
     }
 
+    public interface IFixedGuidProvider
+    {
+        public string GetGuid();
+    }
+
+    public class FixedGuidProvider : IFixedGuidProvider
+    {
+        private string _guid = "";
+
+        public FixedGuidProvider()
+        {
+            _guid = Guid.NewGuid().ToString();
+        }
+
+        public string GetGuid()
+        {
+            return _guid;
+        }
+    }
+
     /*public interface IECConfig
     {
         BaseECExceptionHandler ExceptionHandler { get; }
